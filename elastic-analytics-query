@@ -1,0 +1,66 @@
+
+[]:9200/groot-runtime-*/_search 
+
+{
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "range": {
+                        "@timestamp": {
+                            "gte": "now-60m",
+                            "lte": "now"
+                        }
+                    }
+                },
+                {
+                    "range": {
+                        "statusCode": {
+                            "gt": 499,
+                            "lt": 508
+                        }
+                    }
+                }
+                , {
+                    "range": {
+                        "responseTimeInMillis": {
+                            "gt": 3000,
+                            "lt": 6000
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "_source": [
+        "publisher",
+        "api",
+        "resourcePath"
+    ],
+    "aggs": {
+        "apis": {
+            "terms": {
+                "min_doc_count": 1,
+                "field": "api"
+            },
+            "aggs": {
+                "art": {
+                    "avg": {
+                        "field": "responseTimeInMillis"
+                    }
+                },
+                "last_access": {
+                    "max": {
+                        "field": "@timestamp"
+                    }
+                },
+                "api_stats": {
+                    "stats": {
+                        "field": "responseTimeInMillis"
+                    }
+                }
+            }
+        }
+    }
+}
+ 
